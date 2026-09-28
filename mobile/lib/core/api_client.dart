@@ -17,9 +17,33 @@ class ApiClient {
           }
           handler.next(options);
         },
+        // Runs when a request fails. A 401 means our token is no longer
+        // valid (expired or revoked), so log the user out everywhere.
+        onError: (error, handler) async {
+          final skip = error.requestOptions.extra[skipAuthRedirect] == true;
+          if (error.response?.statusCode == 401 && !skip) {
+            // Only redirect once: if several requests fail at the same
+            // time, the first one deletes the token and the rest skip this.
+            if (await readToken() != null) {
+              await deleteToken();
+              onUnauthorized?.call();
+            }
+          }
+          // Pass the error on so the caller still gets its exception.
+          handler.next(error);
+        },
       ),
     );
   }
+
+  /// Called after a 401 (the token was already deleted). main.dart sets
+  /// this to navigate to LoginScreen. It's a callback so that this core
+  /// file doesn't need to import any screens.
+  void Function()? onUnauthorized;
+
+  /// Put `extra: {ApiClient.skipAuthRedirect: true}` in a request's Options
+  /// when that request handles 401 itself (e.g. /me at startup, /logout).
+  static const skipAuthRedirect = 'skipAuthRedirect';
 
   /// The single shared instance (singleton).
   static final ApiClient instance = ApiClient._();

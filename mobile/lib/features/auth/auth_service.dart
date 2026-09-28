@@ -22,11 +22,9 @@ class AuthService {
     try {
       final response = await _api.dio.post(
         '/login',
-        data: {
-          'email': email,
-          'password': password,
-          'device_name': 'mobile',
-        },
+        data: {'email': email, 'password': password, 'device_name': 'mobile'},
+        // 401 here means wrong password, not an expired session.
+        options: Options(extra: {ApiClient.skipAuthRedirect: true}),
       );
       final data = response.data as Map<String, dynamic>;
       await _api.saveToken(data['token'] as String);
@@ -43,7 +41,11 @@ class AuthService {
     if (token == null) return null;
 
     try {
-      final response = await _api.dio.get('/me');
+      final response = await _api.dio.get(
+        '/me',
+        // A 401 here is normal (old token): we handle it ourselves.
+        options: Options(extra: {ApiClient.skipAuthRedirect: true}),
+      );
       return User.fromJson(response.data as Map<String, dynamic>);
     } catch (_) {
       await _api.deleteToken();
@@ -54,7 +56,11 @@ class AuthService {
   /// Revokes the token on the server, then ALWAYS deletes it locally.
   Future<void> logout() async {
     try {
-      await _api.dio.post('/logout');
+      await _api.dio.post(
+        '/logout',
+        // HomeScreen navigates to LoginScreen itself after logout.
+        options: Options(extra: {ApiClient.skipAuthRedirect: true}),
+      );
     } catch (_) {
       // Ignore: we log out locally even if the server call fails.
     } finally {
