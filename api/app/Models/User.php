@@ -34,5 +34,32 @@ class User extends Authenticatable
         ];
         
     }
+        // ឪពុកម្ដាយ → កូន
+    public function children()
+    {
+        return $this->belongsToMany(Student::class, 'guardian_student', 'guardian_id', 'student_id')
+            ->withPivot('relationship')
+            ->withTimestamps();
+    }
+
+    // គ្រូ → ថ្នាក់ដែលខ្លួនបន្ទុក
+    public function homeroomClasses()
+    {
+        return $this->hasMany(SchoolClass::class, 'homeroom_teacher_id');
+    }
+
+    // គ្រូ → ថ្នាក់ដែលខ្លួនបង្រៀន
+    public function teachingClasses()
+    {
+        return $this->belongsToMany(SchoolClass::class, 'class_subject', 'teacher_id', 'school_class_id')
+            ->withPivot('subject_id')
+            ->withTimestamps();
+    }
+
+    // សិស្ស → profile សិស្ស
+    public function studentProfile()
+    {
+        return $this->hasOne(Student::class);
+    }
    
 }
