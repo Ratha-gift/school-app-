@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Grade;
 use App\Models\SchoolClass;
 use App\Models\Student;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -17,6 +18,7 @@ class DatabaseSeeder extends Seeder
         User::create(['name' => 'Admin', 'email' => 'admin@school.com', 'password' => 'password', 'role' => 'admin']);
         $teacher = User::create(['name' => 'Teacher One', 'email' => 'teacher@school.com', 'password' => 'password', 'role' => 'teacher']);
         $parent  = User::create(['name' => 'Parent One', 'email' => 'parent@school.com', 'password' => 'password', 'role' => 'parent']);
+        $parent2 = User::create(['name' => 'Parent Two', 'email' => 'parent2@school.com', 'password' => 'password', 'role' => 'parent']);
 
         // ថ្នាក់
         $class = SchoolClass::create([
@@ -32,8 +34,9 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Khmer',       'name_km' => 'ភាសាខ្មែរ',   'code' => 'KHM'],
             ['name' => 'English',     'name_km' => 'ភាសាអង់គ្លេស', 'code' => 'ENG'],
         ];
+        $subjectModels = [];
         foreach ($subjects as $data) {
-            $subject = Subject::create($data);
+            $subject = $subjectModels[] = Subject::create($data);
             $class->subjects()->attach($subject->id, ['teacher_id' => $teacher->id]);
         }
 
@@ -57,6 +60,24 @@ class DatabaseSeeder extends Seeder
             // សិស្សទីមួយជាកូនរបស់ Parent One
             if ($i === 0) {
                 $student->guardians()->attach($parent->id, ['relationship' => 'father']);
+            }
+
+            // សិស្សទីពីរជាកូនរបស់ Parent Two (សម្រាប់តេស្តថា parent មើលកូនគេមិនបាន)
+            if ($i === 1) {
+                $student->guardians()->attach($parent2->id, ['relationship' => 'mother']);
+            }
+
+            // ពិន្ទុគំរូ semester_1 គ្រប់មុខវិជ្ជា (50.0 – 100.0, ជំហាន 0.5)
+            foreach ($subjectModels as $subject) {
+                Grade::create([
+                    'student_id'      => $student->id,
+                    'subject_id'      => $subject->id,
+                    'school_class_id' => $class->id,
+                    'term'            => 'semester_1',
+                    'score'           => random_int(100, 200) / 2,
+                    'max_score'       => 100,
+                    'recorded_by'     => $teacher->id,
+                ]);
             }
         }
     }

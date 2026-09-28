@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\SchoolClass;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
 class AttendanceController extends Controller
@@ -15,7 +15,7 @@ class AttendanceController extends Controller
     // GET /api/teacher/classes/{schoolClass}/attendance?date=2026-09-28
     public function index(Request $request, SchoolClass $schoolClass)
     {
-        abort_unless($this->canAccess($request->user(), $schoolClass), 403, 'Not your class');
+        Gate::authorize('access', $schoolClass);
 
         $date = $request->query('date', now()->toDateString());
 
@@ -44,7 +44,7 @@ class AttendanceController extends Controller
     // POST /api/teacher/classes/{schoolClass}/attendance
     public function store(Request $request, SchoolClass $schoolClass)
     {
-        abort_unless($this->canAccess($request->user(), $schoolClass), 403, 'Not your class');
+        Gate::authorize('access', $schoolClass);
 
         $data = $request->validate([
             'date'                 => 'required|date|before_or_equal:today',
@@ -75,16 +75,5 @@ class AttendanceController extends Controller
             'message' => 'Attendance saved',
             'count'   => count($data['records']),
         ]);
-    }
-
-    // គ្រូចូលបានតែថ្នាក់ដែលខ្លួនបន្ទុក ឬបង្រៀន / admin ចូលបានទាំងអស់
-    private function canAccess(User $user, SchoolClass $class): bool
-    {
-        if ($user->role === 'admin') {
-            return true;
-        }
-
-        return $class->homeroom_teacher_id === $user->id
-            || $class->subjects()->where('class_subject.teacher_id', $user->id)->exists();
     }
 }
