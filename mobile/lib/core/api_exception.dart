@@ -9,7 +9,13 @@ class ApiException implements Exception {
   const ApiException(this.message);
 
   /// Converts any error (usually a [DioException]) into an [ApiException].
-  factory ApiException.from(Object error) {
+  ///
+  /// [forbidden] is the message for 403; each screen can pass its own
+  /// (e.g. "can't grade this subject"). Default: "not your class".
+  factory ApiException.from(
+    Object error, {
+    String forbidden = 'អ្នកមិនមានសិទ្ធិលើថ្នាក់នេះទេ',
+  }) {
     if (error is! DioException) {
       // e.g. the JSON didn't have the shape we expected.
       return const ApiException(_generic);
@@ -32,7 +38,9 @@ class ApiException implements Exception {
       case 401:
         return const ApiException('សូមចូលគណនីម្ដងទៀត');
       case 403:
-        return const ApiException('អ្នកមិនមានសិទ្ធិលើថ្នាក់នេះទេ');
+        return ApiException(forbidden);
+      case 404:
+        return const ApiException('រកមិនឃើញទិន្នន័យ');
       case 422:
         // Laravel validation error: show the server's message.
         if (data is Map && data['message'] is String) {

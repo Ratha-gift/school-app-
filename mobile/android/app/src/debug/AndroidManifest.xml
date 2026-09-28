@@ -4,4 +4,10 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- DEBUG ONLY: allow plain http:// so the app can reach the local
+         Laravel dev server (php artisan serve). This file is merged only
+         into debug builds; release builds keep Android's default
+         (HTTPS only), so production must use an https:// API_URL. -->
+    <application android:usesCleartextTraffic="true"/>
 </manifest>

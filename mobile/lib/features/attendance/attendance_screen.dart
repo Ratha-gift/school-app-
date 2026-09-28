@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api_exception.dart';
+import '../../core/date_format.dart';
 import '../../core/error_view.dart';
 import '../../core/theme.dart';
 import '../classes/school_class.dart';
 import 'attendance_models.dart';
 import 'attendance_service.dart';
+import 'status_badge.dart';
 
 /// Take attendance for one class on one day.
 class AttendanceScreen extends StatefulWidget {
@@ -227,7 +229,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             child: TextButton.icon(
               onPressed: _saving ? null : _pickDate,
               icon: const Icon(Icons.calendar_today, size: 18),
-              label: Text(_formatDate(_date)),
+              label: Text(formatDate(_date)),
             ),
           ),
           IconButton(
@@ -285,27 +287,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       runSpacing: 8,
       children: [
         for (final status in AttendanceStatus.values)
-          _summaryBadge(
-            status.label,
-            _students.where((s) => s.status == status).length,
-            status.color,
+          CountBadge(
+            label: status.label,
+            count: _students.where((s) => s.status == status).length,
+            color: status.color,
           ),
-        if (notMarked > 0) _summaryBadge('មិនទាន់កត់', notMarked, Colors.grey),
+        if (notMarked > 0)
+          CountBadge(label: 'មិនទាន់កត់', count: notMarked, color: Colors.grey),
       ],
-    );
-  }
-
-  Widget _summaryBadge(String label, int count, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        border: Border.all(color: color),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        '$label $count',
-        style: TextStyle(color: color, fontWeight: FontWeight.w600),
-      ),
     );
   }
 
@@ -359,11 +348,4 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           : (_) => setState(() => student.status = status),
     );
   }
-}
-
-/// Formats a date as dd/MM/yyyy for display.
-String _formatDate(DateTime date) {
-  final day = date.day.toString().padLeft(2, '0');
-  final month = date.month.toString().padLeft(2, '0');
-  return '$day/$month/${date.year}';
 }

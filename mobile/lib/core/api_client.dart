@@ -1,4 +1,7 @@
+import 'dart:io' show Platform;
+
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// One shared Dio instance + secure storage for the whole app.
@@ -51,9 +54,27 @@ class ApiClient {
   /// Key used to store the Sanctum token in secure storage.
   static const tokenKey = 'token';
 
-  // NOTE: 127.0.0.1 works for Linux desktop / iOS simulator / web.
-  // The Android emulator needs http://10.0.2.2:8000/api instead.
-  static const baseUrl = 'http://127.0.0.1:8000/api';
+  /// The API address. Override it at build time with --dart-define:
+  ///
+  ///   flutter run --dart-define=API_URL=http://192.168.1.20:8000/api
+  ///
+  /// (use your computer's LAN IP to test on a real phone; start Laravel
+  /// with `php artisan serve --host=0.0.0.0` so the phone can reach it).
+  ///
+  /// Without API_URL:
+  /// - Android emulator: 10.0.2.2 = "the computer running the emulator"
+  /// - everything else (Linux desktop, iOS simulator, web): 127.0.0.1
+  static final String baseUrl = _defaultBaseUrl();
+
+  static String _defaultBaseUrl() {
+    // `const` is required: the value is baked in at compile time.
+    const fromDefine = String.fromEnvironment('API_URL');
+    if (fromDefine.isNotEmpty) return fromDefine;
+
+    // Platform (dart:io) doesn't work on web, so check kIsWeb first.
+    if (!kIsWeb && Platform.isAndroid) return 'http://10.0.2.2:8000/api';
+    return 'http://127.0.0.1:8000/api';
+  }
 
   final Dio dio = Dio(
     BaseOptions(
