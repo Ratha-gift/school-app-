@@ -11,6 +11,11 @@ class Subject extends Model
 
     protected $guarded = [];
 
+    public function grades()
+    {
+        return $this->hasMany(Grade::class);
+    }
+
     public function classes()
     {
         return $this->belongsToMany(SchoolClass::class, 'class_subject')

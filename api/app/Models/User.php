@@ -19,6 +19,8 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, HasApiTokens;
 
+    public const ROLES = ['admin', 'teacher', 'parent', 'student'];
+
     /**
      * Get the attributes that should be cast.
      *
