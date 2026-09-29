@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+/* Custom design tokens -> Tailwind classes like bg-brand, text-brand */
+@theme inline {
+  --color-brand: #0f9f8f; /* teal accent (same as the mobile app) */
+  --color-brand-dark: #0b7f72; /* hover */
+  --font-sans: var(--font-kantumruy), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900;
+}
